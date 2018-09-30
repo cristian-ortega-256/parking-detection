@@ -4,6 +4,7 @@ class Blob:
 
 	id = None
 	lifeSpan = 5
+	framesAlive = 0
 	
 	def __init__(self,_x,_y,_height,_width,_contours):
 		self.x = _x

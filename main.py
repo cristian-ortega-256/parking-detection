@@ -8,15 +8,27 @@ from math import sqrt
 
 # Video resource
 #webcam =  Video()
-#webcam =  Video("./assets/parking_video.mp4")
-webcam =  Video("./assets/test2.mp4")
+webcam =  Video("./assets/parking_video.mp4")
+#webcam =  Video("./assets/test2.mp4")
+
+firstFrame = webcam.getFrame()
+
+height, width, channels = firstFrame.shape
 
 # Getting first couple of frames to initialize the move detection
-movementDetector = MovementDetector(webcam.getFrame())
+movementDetector = MovementDetector(firstFrame)
+
+# PERSPECTIVE TRANSFORMATION
+pts1 = np.float32([[94,312], [213,310], [80,372], [235,370]])
+pts2 = np.float32([[120,230], [260,240], [80,372], [235,375]])
+h, mask = cv2.findHomography(pts1, pts2, cv2.RANSAC,1.0)
+# ---------------------------
 
 blobCounter = 0
 
 blobs = []
+
+posibleBlobs = []
 
 # PARKING DEFINITIONS
 parkingSlots = []
@@ -36,6 +48,9 @@ parkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
 while True:
 	frame = webcam.getFrame()
 
+	# UNCOMMENT THIS TO APPLY PERSPECTIVE TRANSFORMATION USING THE HOMOGRAPHY
+	#frame = cv2.warpPerspective(frame, h, (width, height))
+
 	frameMovement = movementDetector.detectMovement(frame)
 	
 	cv2.imshow("FrameMovementDetected",frameMovement)
@@ -53,39 +68,46 @@ while True:
 			blob = Blob(x,y,w,h,c)
 			currentBlobs.append(blob)
 
-	print("Current blobs " + str(len(currentBlobs)))
-	print("Historycal blobs " + str(len(blobs)))
-
 	# Match currentBlobs with history blobs
-	if len(blobs) == 0:
+	if len(posibleBlobs) == 0:
 		for blob in currentBlobs:
 			blob.id = blobCounter
 			blobCounter += 1
-			blobs.append(blob)
+			posibleBlobs.append(blob)
 	else:
 		for cBlob in currentBlobs:
+			print(len(currentBlobs))
 			distance = 99999
 			matched = None
-			for i in range(len(blobs)):
-				blob = blobs[i]
+			for i in range(len(posibleBlobs)):
+				blob = posibleBlobs[i]
 				dist = sqrt( (cBlob.x - blob.x)**2 + (cBlob.y - blob.y)**2 )
 				if dist < distance:
 					distance = dist
 					matched = i
 			# Update blob case
 			if distance < 100:
-				blob = blobs[matched]
+				blob = posibleBlobs[matched]
 				cBlob.id = blob.id
 				cBlob.lifeSpan = 5
-				blobs[matched] = cBlob
-				print("x: " + str(cBlob.centerx) + " y: " + str(cBlob.centery) )
+				cBlob.framesAlive = blob.framesAlive + 1
+				posibleBlobs[matched] = cBlob
 			# Create blob case
 			else:
-				cBlob.id = blobCounter
-				cBlob.lifeSpan = 5
-				blobCounter += 1
-				blobs.append(cBlob)
+				#cBlob.lifeSpan = 5
+				posibleBlobs.append(cBlob)
 	print("----------------------------------")
+
+	# Match Posible blobs to real blobs
+	blobs = []
+	for blob in posibleBlobs:
+		print("Blob " + str(blob.id) + " life-span: " + str(blob.lifeSpan))
+		if blob.framesAlive > 10 and blob.lifeSpan > 0:
+			if blob.id == None:
+				blob.id = blobCounter
+				blobCounter += 1
+			blob.lifeSpan -= 1
+			blobs.append(blob)
 	
 	# PARKING SECTION
 	for parking in parkingSlots:
@@ -96,29 +118,11 @@ while True:
 	
 	# Draw blobs
 	for blob in blobs:
-		if blob.lifeSpan > 0:
-			blob.lifeSpan -= 1
-			blob.show(frame)
+		blob.show(frame)
 	
-	# PERSPECTIVE TRANSFORMATION
-	pts1 = np.float32([[390,385], [1065, 385], [300, 680], [1280, 670]])
-	pts2 = np.float32([[0, 0], [1200, 0], [0, 700], [1200, 700]])
-	matrix = cv2.getPerspectiveTransform(pts1, pts2)
-	'''
-	CIRCLES TO DETERMINATE PARKING ZONE
-	# TOP LEFT
-	cv2.circle(frame, (390,385), 5, (255, 0, ), -1)
-	# TOP RIGHT
-	cv2.circle(frame, (1065, 385), 5, (0, 255, 0), -1)
-	# BOTTOM LEFT
-	cv2.circle(frame, (300, 680), 5, (0, 0, 255), -1)
-	# BOTTOM RIGHT
-	cv2.circle(frame, (1280, 670), 5, (0, 255, 255), -1)
-	'''
+	font = cv2.FONT_HERSHEY_SIMPLEX
+	cv2.putText(frame,"Blobs detected: " + str(len(blobs)),(10,40), font, 1,(0,0,0),2,cv2.LINE_AA)
 	
-	result = cv2.warpPerspective(frame, matrix, (1200,700))
-	cv2.imshow("Perspective",result)
-
 	cv2.imshow("Frame",frame)
 	key = cv2.waitKey(1)
 	if key == 13:
