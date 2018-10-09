@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# cached files
+*.npz
+camera-data/*.*

@@ -17,4 +17,3 @@ class Video:
 	
 	def release(self):
 		self.cap.release()
-		self.out.release()
