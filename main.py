@@ -18,10 +18,6 @@ height, width, channels = firstFrame.shape
 # Getting first couple of frames to initialize the move detection
 movementDetector = MovementDetector(firstFrame)
 
-# PERSPECTIVE TRANSFORMATION
-pts1 = np.float32([[94,312], [213,310], [80,372], [235,370]])
-pts2 = np.float32([[120,230], [260,240], [80,372], [235,375]])
-h, mask = cv2.findHomography(pts1, pts2, cv2.RANSAC,1.0)
 # ---------------------------
 
 blobCounter = 0
@@ -47,9 +43,6 @@ parkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
 
 while True:
 	frame = webcam.getFrame()
-
-	# UNCOMMENT THIS TO APPLY PERSPECTIVE TRANSFORMATION USING THE HOMOGRAPHY
-	#frame = cv2.warpPerspective(frame, h, (width, height))
 
 	frameMovement = movementDetector.detectMovement(frame)
 	

@@ -46,5 +46,30 @@ class PointManager:
         input('Presione una tecla para finalizar')
         return self.points
         
+    def pointManageFromFrame(self,frame):
+        #cap = cv2.VideoCapture(0)
 
+        os.system('clear')
+        cv2.namedWindow("Frame")
+        cv2.setMouseCallback("Frame", self.definePoints)
+
+        while self.idPoint < 4:
+            os.system('clear')
+            print('Indique cuatro puntos')
+            print('Puntos restantes: ' + str(4-self.idPoint))
+
+            for center_position in self.points:
+                cv2.circle(frame, center_position, 5, (0,0,255), -1)
+
+            cv2.imshow("Frame", frame)
+
+            key = cv2.waitKey(1)
+            if key == 27:
+                break
+        
+        print('Proceso de configuración finalizado.')
+        input('Presione una tecla para finalizar')
+        #cv2.destroyAllWindows()
+        
+        return self.points
 
