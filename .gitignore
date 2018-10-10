@@ -103,6 +103,11 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+<<<<<<< HEAD
 # cached files
 *.npz
 camera-data/*.*
+=======
+# id files
+.vscode
+>>>>>>> Drawing rectangle (test)
