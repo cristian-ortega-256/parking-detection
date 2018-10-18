@@ -44,8 +44,16 @@ os.system('clear')
 homographyFrame = calculateHomography(frame)
 
 # Fourth Step - Parking Configuration
-os.system('clear')
-parkingConfigurator(homographyFrame)
+if os.path.isfile('./camera-data/parking.json'):
+	print('Los estacionamientos ya están configurados.')
+else:
+	parkingConfigurator()
+
+# if os.path.isfile('parkingConfig.json'):
+# 	print('Configuracion de estacionamiento detectada')
+# else:
+# 	print('Configurar estacionamiento (MODULO PENDIENTE)')
+	#ParkingConfigurator()
 
 # Fifth Step - Start Parking System [ BETA ]
 os.system('clear')

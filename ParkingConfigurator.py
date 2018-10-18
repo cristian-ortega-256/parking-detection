@@ -1,6 +1,8 @@
 import cv2
 from DrawParking import DrawParking
 from PointsManager import PointManager
+from GenerateJson import writeToJSONFile
+import json
 
 def parkingConfigurator(frame):
     end = False
@@ -12,10 +14,10 @@ def parkingConfigurator(frame):
         pointsParking = pm.pointManageFromFrame(frame)
         quantity = input('Ingrese la cantidad de estacionamientos del sector indicado: ')
         dp = DrawParking(pointsParking, quantity)
-        new_parking = dp.getParkings(frame)
+        new_parking = dp.getParkings()
         #print(all_parkings)
         #print(new_parking)
-        all_parkings + new_parking
+        all_parkings = all_parkings + new_parking
 
         #TODO --> Add Frame resources to show parkings!
         # for p in parking:
@@ -29,6 +31,19 @@ def parkingConfigurator(frame):
         #    continue
         if key == "n":
             end = True
+
+    # Save the parkings in JSON file:
+    data = {}
+    data['parkings'] = []
+    for x in range(len(all_parkings)):
+        data['parkings'].append({
+            'id': str(x),
+            'point_tl': all_parkings[x].point_tl,
+            'point_tr': all_parkings[x].point_tr,
+            'point_bl': all_parkings[x].point_bl,
+            'point_br': all_parkings[x].point_br
+        })
+    writeToJSONFile('./camera-data', 'parking', data)
         
     print("Proceso de configuración de lugares de estacionamiento finalizado.")
     input("Presione ENTER para continuar.")
