@@ -2,10 +2,20 @@ import cv2
 from DrawParking import DrawParking
 from PointsManager import PointManager
 from GenerateJson import writeToJSONFile
-import json
+import numpy as np
+import json,codecs
 
 def parkingConfigurator(frame):
     end = False
+
+    # TODO --> Extract this to a json data reader
+    obj_text = codecs.open('./camera-data/homography.json', 'r', encoding='utf-8').read()
+    b_new = json.loads(obj_text)
+    homography = np.array(b_new)
+
+    height, width, channels = frame.shape
+
+    frame = cv2.warpPerspective(frame, homography, (int(width*1.5),int(height*1.5)))
 
     all_parkings = []
 
@@ -14,7 +24,7 @@ def parkingConfigurator(frame):
         pointsParking = pm.pointManageFromFrame(frame)
         quantity = input('Ingrese la cantidad de estacionamientos del sector indicado: ')
         dp = DrawParking(pointsParking, quantity)
-        new_parking = dp.getParkings()
+        new_parking = dp.getParkings(frame)
         #print(all_parkings)
         #print(new_parking)
         all_parkings = all_parkings + new_parking
@@ -44,6 +54,3 @@ def parkingConfigurator(frame):
             'point_br': all_parkings[x].point_br
         })
     writeToJSONFile('./camera-data', 'parking', data)
-        
-    print("Proceso de configuración de lugares de estacionamiento finalizado.")
-    input("Presione ENTER para continuar.")

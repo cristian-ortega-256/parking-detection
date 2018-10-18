@@ -5,17 +5,29 @@ from MovementDetector import MovementDetector
 from Blob import Blob
 from Parking import Parking
 from math import sqrt
+import json,codecs
 
 # Video resource
 #webcam =  Video()
-webcam =  Video("./assets/parking_video.mp4")
-#webcam =  Video("./assets/test2.mp4")
+#webcam =  Video("./assets/ToyParking.mp4")
+webcam =  Video("./assets/test2.mp4")
+
+# LOAD HOMOGRAPHY TODO --> Extract this to a json data reader
+
+obj_text = codecs.open('./camera-data/homography.json', 'r', encoding='utf-8').read()
+b_new = json.loads(obj_text)
+homography = np.array(b_new)
+
+# SET FIRST FRAME
 
 firstFrame = webcam.getFrame()
 
 height, width, channels = firstFrame.shape
 
+firstFrame = cv2.warpPerspective(firstFrame, homography, (int(width*1.5),int(height*1.5)))
+
 # Getting first couple of frames to initialize the move detection
+
 movementDetector = MovementDetector(firstFrame)
 
 # ---------------------------
@@ -26,23 +38,34 @@ blobs = []
 
 posibleBlobs = []
 
+# READ PARKINGS DATA
+
+json_data = codecs.open('./camera-data/parking.json', 'r', encoding='utf-8').read()
+jParkings = json.loads(json_data)['parkings']
+
 # PARKING DEFINITIONS
 parkingSlots = []
 
+for rawParking in jParkings:
+	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test')
+	parkingSlots.append(parking_new)
+
 # TOP
-parkingSlots.append(Parking(650,390,850,450,'TOP'))
+#parkingSlots.append(Parking(650,390,850,450,'TOP'))
 
 # BOTTOM
-parkingSlots.append(Parking(630,570,870,670,'BOTTOM'))
+#parkingSlots.append(Parking(630,570,870,670,'BOTTOM'))
 
 # LEFT
-parkingSlots.append(Parking(340,400,530,600,'LEFT'))
+#parkingSlots.append(Parking(340,400,530,600,'LEFT'))
 
 # RIGHT
-parkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
+#arkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
 
 while True:
 	frame = webcam.getFrame()
+
+	frame = cv2.warpPerspective(frame, homography, (int(width*1.5),int(height*1.5)))
 
 	frameMovement = movementDetector.detectMovement(frame)
 	
@@ -79,7 +102,8 @@ while True:
 					distance = dist
 					matched = i
 			# Update blob case
-			if distance < 100:
+			if distance < 90:
+			#if distance < 30:
 				blob = posibleBlobs[matched]
 				cBlob.id = blob.id
 				cBlob.lifeSpan = 5
@@ -88,11 +112,14 @@ while True:
 			# Create blob case
 			else:
 				#cBlob.lifeSpan = 5
+				if cBlob.id == None:
+					cBlob.id = blobCounter
+					blobCounter += 1
 				posibleBlobs.append(cBlob)
 	print("----------------------------------")
 
 	# Match Posible blobs to real blobs
-	blobs = []
+	'''blobs = []
 	for blob in posibleBlobs:
 		print("Blob " + str(blob.id) + " life-span: " + str(blob.lifeSpan))
 		if blob.framesAlive > 10 and blob.lifeSpan > 0:
@@ -100,18 +127,20 @@ while True:
 				blob.id = blobCounter
 				blobCounter += 1
 			blob.lifeSpan -= 1
-			blobs.append(blob)
+			blobs.append(blob)'''
 	
 	# PARKING SECTION
 	for parking in parkingSlots:
-		for blob in blobs:
+		for blob in posibleBlobs:
 			if parking.isOcupatedBy(blob):
 				break
 		parking.draw(frame)
 	
 	# Draw blobs
-	for blob in blobs:
-		blob.show(frame)
+	for blob in posibleBlobs:
+		if(blob.lifeSpan > 0):
+			blob.lifeSpan -= 1
+			blob.show(frame)
 	
 	font = cv2.FONT_HERSHEY_SIMPLEX
 	cv2.putText(frame,"Blobs detected: " + str(len(blobs)),(10,40), font, 1,(0,0,0),2,cv2.LINE_AA)

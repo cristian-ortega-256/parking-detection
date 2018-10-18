@@ -2,6 +2,7 @@ import cv2
 import math
 import numpy as np
 from PointsManager import PointManager
+from GenerateJson import writeToJSONFile
 
 def findBottomYPoint(points):
 	second = greatest = points[0]
@@ -154,6 +155,10 @@ def calculateHomography(frame):
 	homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.5),int(height*1.5)))
 
 	cv2.imshow('Homography Frame',homographyFrame)
+
+	# Save homography in JSON file:
+	data = h.tolist()
+	writeToJSONFile('./camera-data', 'homography', data)
 
 	print('Homografica calculada corretamente.')
 	print('Presione una tecla para continuar...')
