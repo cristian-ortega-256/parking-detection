@@ -47,6 +47,7 @@ def calibrateCamera(dev):
 	# Calibrate the camera and save the results
 	ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPointsArray, imgPointsArray, gray.shape[::-1], None, None)
 	np.savez('./camera-data/calib.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+	cv2.destroyAllWindows()
 	if dev:
 		error = 0
 

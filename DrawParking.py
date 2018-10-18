@@ -13,12 +13,8 @@ class DrawParking:
         self.quantity = int(_quantity)
 
 
-    def getParkings(self):
-        cap = cv2.VideoCapture(0)
-
+    def getParkings(self,frame):
         while True:
-            _, frame = cap.read()
-
             #cv2.line(frame, self.point_tl, self.point_tr, (0,0,255), 3)
             #cv2.line(frame, self.point_tr, self.point_br, (0,0,255), 3)
             #cv2.line(frame, self.point_br, self.point_bl, (0,0,255), 3)
@@ -92,10 +88,9 @@ class DrawParking:
 
             cv2.imshow("Frame", frame)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(50)
             if key == 27:
                 break
 
-        cap.release()
         cv2.destroyAllWindows()
         return parking

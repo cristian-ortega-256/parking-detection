@@ -1,7 +1,6 @@
 import cv2
 import math
 import numpy as np
-from Video import Video
 from PointsManager import PointManager
 
 def findBottomYPoint(points):
@@ -99,7 +98,6 @@ def getRectanglePoints(p1,p2):
 	p3 = (0,0)
 	p4 = (0,0)
 	if p1[1] < p2[1]:
-		print('Case leftUp - rightDown')
 		p3 = (p2[0],p1[1])
 		p4 = (p1[0],p2[1])
 	else:
@@ -107,60 +105,59 @@ def getRectanglePoints(p1,p2):
 		p4 = (p2[0],p1[1])
 	return [p1,p2,p3,p4]
 
-# Get Frame info
-webcam =  Video("./assets/ToyParking.mp4")
+def calculateHomography(frame):
+	cv2.imshow('RAW Frame',frame)
+	height, width, channels = frame.shape
 
-frame = webcam.getFrame()
+	# Frame COPY to work with the transformations
+	transformedFrame = frame
 
-cv2.imshow('RAW Frame',frame)
+	# Get user input points
+	pointsFrame = frame
+	pm = PointManager()
+	pts = pm.pointManageFromFrame(pointsFrame)
 
-height, width, channels = frame.shape
+	# Find the 2 closest to the bottom
+	greatest,second = findBottomYPoint(pts)
 
-# Frame COPY to work with the transformations
-transformedFrame = frame
+	# Create parallel point to calculate grades between the 2 vectors
+	paralelToGreatestPoint = (greatest[0]*2,greatest[1])
 
-# Get user input points
-pm = PointManager()
-pts = pm.pointManageFromFrame(frame)
+	# Calculates the director vectors of the given points
+	vectorOriginal = generateVector(second,greatest)
+	vectorParallel = generateVector(paralelToGreatestPoint,greatest)
 
-# Find the 2 closest to the bottom
-greatest,second = findBottomYPoint(pts)
+	# Calculates the rotation difference between the to directions
+	rotationDiff = calculateRotationDiff(vectorOriginal,vectorParallel)
 
-# Create parallel point to calculate grades between the 2 vectors
-paralelToGreatestPoint = (greatest[0]*2,greatest[1])
+	# Apply Rotation Correction to points
+	correctedPoints = applyRotationToPoints(pts,greatest,rotationDiff)
 
-# Calculates the director vectors of the given points
-vectorOriginal = generateVector(second,greatest)
-vectorParallel = generateVector(paralelToGreatestPoint,greatest)
+	p1,p2 = getBiggestRectangleArea(correctedPoints)
 
-# Calculates the rotation difference between the to directions
-rotationDiff = calculateRotationDiff(vectorOriginal,vectorParallel)
+	outPoints = getRectanglePoints(p1,p2)
 
-# Apply Rotation Correction to points
-correctedPoints = applyRotationToPoints(pts,greatest,rotationDiff)
+	# Match rectangle points to the corrected ones position
+	# NOTE: this is made to have a correpondient order between the initial 
+	# input points & the final out-put points.
+	orderedOutPoints = orderPointsByClosestsMatches(outPoints,correctedPoints)
 
-p1,p2 = getBiggestRectangleArea(correctedPoints)
+	#cv2.imshow('Transformed Frame',transformedFrame)
 
-outPoints = getRectanglePoints(p1,p2)
+	# Apply HOMOGRAPHY
+	pts = asNpArray(pts)
 
-# Match rectangle points to the corrected ones position
-# NOTE: this is made to have a correpondient order between the initial 
-# input points & the final out-put points.
-orderedOutPoints = orderPointsByClosestsMatches(outPoints,correctedPoints)
+	orderedOutPoints = asNpArray(orderedOutPoints)
 
-cv2.imshow('Transformed Frame',transformedFrame)
+	h, mask = cv2.findHomography(pts, orderedOutPoints, cv2.RANSAC,1.0)
 
-# Apply HOMOGRAPHY
-pts = asNpArray(pts)
+	homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.5),int(height*1.5)))
 
-orderedOutPoints = asNpArray(orderedOutPoints)
+	cv2.imshow('Homography Frame',homographyFrame)
 
-h, mask = cv2.findHomography(pts, orderedOutPoints, cv2.RANSAC,1.0)
+	print('Homografica calculada corretamente.')
+	print('Presione una tecla para continuar...')
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
-homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.5),int(height*1.5)))
-
-cv2.imshow('Homography Frame',homographyFrame)
-
-cv2.waitKey(0)
-webcam.release()
-cv2.destroyAllWindows()
+	return homographyFrame
