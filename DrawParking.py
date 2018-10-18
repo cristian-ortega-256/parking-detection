@@ -42,7 +42,9 @@ class DrawParking:
                         # Save the last parking
                         point1 = (self.point_tl[0] + (parkings_quantity_w * (self.quantity - 1)), self.point_tl[1])
                         point2 = (self.point_bl[0] + (parkings_quantity_w * (self.quantity - 1)), self.point_bl[1])
-                        parkingSlot = ParkingSlot(point1, self.point_tr, point2, self.point_br, self.quantity)
+                        last_point_tr = (point1[0] + parkings_quantity_w, self.point_tl[1])
+                        last_point_br = (point2[0] + parkings_quantity_w, self.point_bl[1])
+                        parkingSlot = ParkingSlot(point1, last_point_tr, point2, last_point_br, self.quantity)
                         parking.append(parkingSlot)
                         print(str(parkingSlot))
 
@@ -67,7 +69,9 @@ class DrawParking:
                         # Save the last parking
                         point1 = (self.point_tl[0], self.point_tl[1] + (parkings_quantity_h * (self.quantity - 1)))
                         point2 = (self.point_tr[0], self.point_tr[1] + (parkings_quantity_h * (self.quantity - 1)))
-                        parkingSlot = ParkingSlot(point1, point2, self.point_bl, self.point_br, self.quantity)
+                        last_point_bl = (point1[0], point2[1] + parkings_quantity_h)
+                        last_point_br = (point2[0], point2[1] + parkings_quantity_h)
+                        parkingSlot = ParkingSlot(point1, point2, last_point_bl, last_point_br, self.quantity)
                         parking.append(parkingSlot)
                         #print(str(parkingSlot))
 
