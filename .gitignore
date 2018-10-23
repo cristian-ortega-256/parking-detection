@@ -105,6 +105,6 @@ venv.bak/
 
 # cached files
 *.npz
-camera-data/*.*
+camera_data/*.*
 # id files
 .vscode

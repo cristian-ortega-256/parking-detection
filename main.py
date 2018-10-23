@@ -1,20 +1,22 @@
 import cv2
 import numpy as np
-from Video import Video
-from MovementDetector import MovementDetector
-from Blob import Blob
-from Parking import Parking
+from video_source.Video import Video
+from movement_detection.MovementDetector import MovementDetector
+from movement_detection.Blob import Blob
+from parking_configuration.Parking import Parking
 from math import sqrt
 import json,codecs
+from video_source.CameraStreaming import CameraStreaming
 
 # Video resource
 #webcam =  Video()
 #webcam =  Video("./assets/ToyParking.mp4")
 webcam =  Video("./assets/test2.mp4")
+#webcam = CameraStreaming('http://192.168.43.1:8080/shot.jpg')
 
 # LOAD HOMOGRAPHY TODO --> Extract this to a json data reader
 
-obj_text = codecs.open('./camera-data/homography.json', 'r', encoding='utf-8').read()
+obj_text = codecs.open('./camera_data/homography.json', 'r', encoding='utf-8').read()
 b_new = json.loads(obj_text)
 homography = np.array(b_new)
 
@@ -40,7 +42,7 @@ posibleBlobs = []
 
 # READ PARKINGS DATA
 
-json_data = codecs.open('./camera-data/parking.json', 'r', encoding='utf-8').read()
+json_data = codecs.open('./camera_data/parking.json', 'r', encoding='utf-8').read()
 jParkings = json.loads(json_data)['parkings']
 
 # PARKING DEFINITIONS

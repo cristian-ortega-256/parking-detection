@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from Video import Video
+from video_source.Video import Video
 import os
 
 class PointManager:

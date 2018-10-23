@@ -1,5 +1,5 @@
 import cv2
-from ImageHelpers import applyGauss,toGrayScale
+from helpers.ImageHelpers import applyGauss,toGrayScale
 
 class MovementDetector:
 	# Initialise the movement detection with 2 initial frames

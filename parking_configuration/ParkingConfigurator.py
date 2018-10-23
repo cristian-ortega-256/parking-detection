@@ -1,7 +1,7 @@
 import cv2
-from DrawParking import DrawParking
-from PointsManager import PointManager
-from GenerateJson import writeToJSONFile
+from parking_configuration.DrawParking import DrawParking
+from helpers.PointsManager import PointManager
+from helpers.GenerateJson import writeToJSONFile
 import numpy as np
 import json,codecs
 
@@ -9,7 +9,7 @@ def parkingConfigurator(frame):
     end = False
 
     # TODO --> Extract this to a json data reader
-    obj_text = codecs.open('./camera-data/homography.json', 'r', encoding='utf-8').read()
+    obj_text = codecs.open('./camera_data/homography.json', 'r', encoding='utf-8').read()
     b_new = json.loads(obj_text)
     homography = np.array(b_new)
 
@@ -53,4 +53,4 @@ def parkingConfigurator(frame):
             'point_bl': all_parkings[x].point_bl,
             'point_br': all_parkings[x].point_br
         })
-    writeToJSONFile('./camera-data', 'parking', data)
+    writeToJSONFile('./camera_data', 'parking', data)

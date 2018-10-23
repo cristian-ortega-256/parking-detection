@@ -1,7 +1,7 @@
 import cv2
 import math
 import os
-from ParkingSlot import ParkingSlot
+from parking_configuration.ParkingSlot import ParkingSlot
 
 class DrawParking:
 

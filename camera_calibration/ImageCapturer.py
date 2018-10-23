@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from Video import Video
+from video_source.Video import Video
 import os
 
 def captureImages():
@@ -18,7 +18,7 @@ def captureImages():
 		key = cv2.waitKey(100)
 		if key == 32:
 			cv2.imshow('Captura', imgResized)
-			cv2.imwrite('./camera-data/calibration-image-'+str(imgId)+'.jpg',img)
+			cv2.imwrite('./camera_data/calibration-image-'+str(imgId)+'.jpg',img)
 			imgId += 1
 
 	webcam.release()
