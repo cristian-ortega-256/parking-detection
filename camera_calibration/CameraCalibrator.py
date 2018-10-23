@@ -20,7 +20,7 @@ def calibrateCamera(dev):
 	imgPointsArray = []
 
 	# Loop over the image files
-	for path in glob.glob('./camera-data/*.jpg'):
+	for path in glob.glob('./camera_data/*.jpg'):
 		# Load the image and convert it to gray scale
 		img = cv2.imread(path)
 		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -46,7 +46,7 @@ def calibrateCamera(dev):
 
 	# Calibrate the camera and save the results
 	ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectPointsArray, imgPointsArray, gray.shape[::-1], None, None)
-	np.savez('./camera-data/calib.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+	np.savez('./camera_data/calib.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
 	cv2.destroyAllWindows()
 	if dev:
 		error = 0
@@ -58,7 +58,7 @@ def calibrateCamera(dev):
 		print("Total error: ", error / len(objectPointsArray))
 
 		# Load one of the test images
-		img = cv2.imread('./camera-data/WhatsApp Image 2018-10-06 at 15.47.24.jpeg')
+		img = cv2.imread('./camera_data/WhatsApp Image 2018-10-06 at 15.47.24.jpeg')
 		h, w = img.shape[:2]
 
 		# Obtain the new camera matrix and undistort the image

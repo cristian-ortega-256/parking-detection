@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 import os
 import glob
-from Video import Video
-from ImageCapturer import captureImages
-from CameraCalibrator import calibrateCamera
-from PointsManager import PointManager
-from DrawParking import DrawParking
-from ParkingConfigurator import parkingConfigurator
-from HomographyCalculator import calculateHomography
+from video_source.Video import Video
+from camera_calibration.ImageCapturer import captureImages
+from camera_calibration.CameraCalibrator import calibrateCamera
+from helpers.PointsManager import PointManager
+from parking_configuration.DrawParking import DrawParking
+from parking_configuration.ParkingConfigurator import parkingConfigurator
+from homography_configuration.HomographyCalculator import calculateHomography
 import codecs, json
 
 os.system('clear')
@@ -22,7 +22,7 @@ frame = webcam.getFrame()
 
 # First Step - Image Capture
 os.system('clear')
-if len(glob.glob('./camera-data/*.jpg')) < 10:
+if len(glob.glob('./camera_data/*.jpg')) < 10:
 	print('Procederemos a capturar las imagenes.')
 	input('Presione ENTER para comenzar')
 	captureImages()
@@ -34,7 +34,7 @@ else:
 
 # Second Step - Camera Configuration
 os.system('clear')
-if os.path.isfile('./camera-data/calib.npz'):
+if os.path.isfile('./camera_data/calib.npz'):
 	print('La camara esta calibrada')
 	input('Presione ENTER para continuar...')
 else:
@@ -46,7 +46,7 @@ else:
 
 # Third Step - Points for Homography
 os.system('clear')
-if os.path.isfile('./camera-data/homography.json'):
+if os.path.isfile('./camera_data/homography.json'):
 	print('La correccion de imagen se encuentra configurada!.')
 	input('Presione ENTER para continuar...')
 else:
@@ -57,7 +57,7 @@ else:
 
 # Fourth Step - Parking Configuration
 os.system('clear')
-if os.path.isfile('./camera-data/parking.json'):
+if os.path.isfile('./camera_data/parking.json'):
 	print('Los estacionamientos ya están configurados.')
 	input('Presione ENTER para continuar...')
 else:

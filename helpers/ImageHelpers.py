@@ -11,4 +11,5 @@ def diffImg(olderFrame, middleFrame, lastFrame):
 	return cv2.bitwise_and(d1, d2)
 
 def applyGauss(img):
-	return cv2.GaussianBlur(img, (1, 1), 0)
+	# TODO --> Check if blur more blur improves performance
+	return cv2.GaussianBlur(img, (5, 5), 0)
