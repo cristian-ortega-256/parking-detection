@@ -52,7 +52,7 @@ if os.path.isfile('./camera_data/homography.json'):
 	input('Presione ENTER para continuar...')
 else:
 	print('La correccion de imagen se encuentra configurada!.')
-	homographyFrame = calculateHomography(frame)
+	homographyFrame = calculateHomography(frame.copy())
 	print('Configuracion de imagen finalizada.')
 	input('Presione ENTER para continuar...')
 
@@ -63,7 +63,7 @@ if os.path.isfile('./camera_data/parking.json'):
 	input('Presione ENTER para continuar...')
 else:
 	print('Configurar estacionamiento')
-	parkingConfigurator(webcam.getFrame())
+	parkingConfigurator(frame.copy())
 	os.system('clear')
 	print('Los estacionamientos configurado exitosamente!')
 	input('Presione ENTER para continuar...')

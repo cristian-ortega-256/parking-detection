@@ -7,18 +7,14 @@ from parking_configuration.Parking import Parking
 from math import sqrt
 from video_source.CameraStreaming import CameraStreaming
 from video_source.VideoStream import VideoStream
-from helpers.JsonManager import getHomography
 import json,codecs
+from UserInterface import UserInterface
 
 # Video resource
-#webcam =  Video()
-#webcam =  Video("./assets/ToyParking.mp4")
-#webcam = CameraStreaming('http://192.168.43.1:8080/shot.jpg')
-#webcam = VideoStream("http://192.168.0.19:8080/video").start()
-webcam = VideoStream("http://192.168.0.20:8080/video").start()
+#webcam =  Video("./assets/Test2.mp4")
+webcam = VideoStream("http://192.168.0.19:8080/video").start()
 
-# LOAD HOMOGRAPHY TODO --> Extract this to a json data reader
-homography = getHomography()
+userInterface = UserInterface(webcam)
 
 # SET FIRST FRAME
 
@@ -50,26 +46,17 @@ for rawParking in jParkings:
 	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test')
 	parkingSlots.append(parking_new)
 
-# TOP
-#parkingSlots.append(Parking(650,390,850,450,'TOP'))
-
-# BOTTOM
-#parkingSlots.append(Parking(630,570,870,670,'BOTTOM'))
-
-# LEFT
-#parkingSlots.append(Parking(340,400,530,600,'LEFT'))
-
-# RIGHT
-#arkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
+userInterface.start()
 
 while True:
 	# Get homography fram from source
-	frame = webcam.getHomographyFrame().copy()
+	frame = webcam.getHomographyFrame()
 
 	# Apply movement detector to the current frame
 	frameMovement = movementDetector.detectMovement(frame)
-	
 	#cv2.imshow("FrameMovementDetected",frameMovement)
+
+	# TODO --> Separete blob detection in a new file
 
 	# Current frame blobs
 	currentBlobs = []
@@ -130,12 +117,14 @@ while True:
 			blob.lifeSpan -= 1
 			blobs.append(blob)'''
 	
+	# TODO --> Separete parking state control in a new file
+	
 	# PARKING SECTION
 	for parking in parkingSlots:
 		for blob in posibleBlobs:
 			if parking.isOcupatedBy(blob):
 				break
-		parking.draw(frame)
+		#parking.draw(frame)
 	
 	# Draw blobs
 	for blob in posibleBlobs:
@@ -146,13 +135,14 @@ while True:
 	font = cv2.FONT_HERSHEY_SIMPLEX
 	cv2.putText(frame,"Blobs detected: " + str(len(blobs)),(10,40), font, 1,(0,0,0),2,cv2.LINE_AA)
 	
-	cv2.imshow("Frame",frame)
+	cv2.imshow("Frame",userInterface.getUiFrame())
 	key = cv2.waitKey(1)
 	if key == 13:
 		break
-	
 	# Print to determinate end of the cicle
+
 	print("----------------------------------")
-		
-webcam.release()
+
+userInterface.stop()
+webcam.stop()
 cv2.destroyAllWindows()
