@@ -5,28 +5,26 @@ from movement_detection.MovementDetector import MovementDetector
 from movement_detection.Blob import Blob
 from parking_configuration.Parking import Parking
 from math import sqrt
-import json,codecs
 from video_source.CameraStreaming import CameraStreaming
+from video_source.VideoStream import VideoStream
+from helpers.JsonManager import getHomography
+import json,codecs
 
 # Video resource
 #webcam =  Video()
 #webcam =  Video("./assets/ToyParking.mp4")
-webcam =  Video("./assets/test2.mp4")
 #webcam = CameraStreaming('http://192.168.43.1:8080/shot.jpg')
+#webcam = VideoStream("http://192.168.0.19:8080/video").start()
+webcam = VideoStream("http://192.168.0.20:8080/video").start()
 
 # LOAD HOMOGRAPHY TODO --> Extract this to a json data reader
-
-obj_text = codecs.open('./camera_data/homography.json', 'r', encoding='utf-8').read()
-b_new = json.loads(obj_text)
-homography = np.array(b_new)
+homography = getHomography()
 
 # SET FIRST FRAME
 
-firstFrame = webcam.getFrame()
+firstFrame = webcam.getHomographyFrame()
 
 height, width, channels = firstFrame.shape
-
-firstFrame = cv2.warpPerspective(firstFrame, homography, (int(width*1.5),int(height*1.5)))
 
 # Getting first couple of frames to initialize the move detection
 
@@ -65,13 +63,13 @@ for rawParking in jParkings:
 #arkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
 
 while True:
-	frame = webcam.getFrame()
+	# Get homography fram from source
+	frame = webcam.getHomographyFrame().copy()
 
-	frame = cv2.warpPerspective(frame, homography, (int(width*1.5),int(height*1.5)))
-
+	# Apply movement detector to the current frame
 	frameMovement = movementDetector.detectMovement(frame)
 	
-	cv2.imshow("FrameMovementDetected",frameMovement)
+	#cv2.imshow("FrameMovementDetected",frameMovement)
 
 	# Current frame blobs
 	currentBlobs = []
@@ -94,7 +92,7 @@ while True:
 			posibleBlobs.append(blob)
 	else:
 		for cBlob in currentBlobs:
-			print(len(currentBlobs))
+			#print(len(currentBlobs))
 			distance = 99999
 			matched = None
 			for i in range(len(posibleBlobs)):
@@ -118,9 +116,10 @@ while True:
 					cBlob.id = blobCounter
 					blobCounter += 1
 				posibleBlobs.append(cBlob)
-	print("----------------------------------")
+	#print("----------------------------------")
 
 	# Match Posible blobs to real blobs
+	# TODO --> Check the viability of this improvement
 	'''blobs = []
 	for blob in posibleBlobs:
 		print("Blob " + str(blob.id) + " life-span: " + str(blob.lifeSpan))
@@ -151,6 +150,9 @@ while True:
 	key = cv2.waitKey(1)
 	if key == 13:
 		break
+	
+	# Print to determinate end of the cicle
+	print("----------------------------------")
 		
 webcam.release()
 cv2.destroyAllWindows()

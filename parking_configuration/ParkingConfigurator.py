@@ -1,7 +1,7 @@
 import cv2
 from parking_configuration.DrawParking import DrawParking
 from helpers.PointsManager import PointManager
-from helpers.GenerateJson import writeToJSONFile
+from helpers.JsonManager import writeToJSONFile
 import numpy as np
 import json,codecs
 

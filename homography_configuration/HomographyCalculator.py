@@ -2,7 +2,7 @@ import cv2
 import math
 import numpy as np
 from helpers.PointsManager import PointManager
-from helpers.GenerateJson import writeToJSONFile
+from helpers.JsonManager import writeToJSONFile
 
 def findBottomYPoint(points):
 	second = greatest = points[0]
