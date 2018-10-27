@@ -17,7 +17,7 @@ class Parking:
 	
 	def isOcupatedBy(self,someBlob):
 		if (someBlob.centerx >= self.minx and someBlob.centerx <= self.maxx) and (someBlob.centery >= self.miny and someBlob.centery <= self.maxy):
-			print("BLOB " + str(someBlob.id) + " IS INSIDE PARKING " + self.name)
+			#print("BLOB " + str(someBlob.id) + " IS INSIDE PARKING " + self.name)
 			self.state = True
 			return True
 		else:
