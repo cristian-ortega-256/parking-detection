@@ -49,8 +49,7 @@ def parkingConfigurator(frame):
         data['parkings'].append({
             'id': str(x),
             'point_tl': all_parkings[x].point_tl,
-            'point_tr': all_parkings[x].point_tr,
-            'point_bl': all_parkings[x].point_bl,
-            'point_br': all_parkings[x].point_br
+            'point_br': all_parkings[x].point_br,
+            'state': True
         })
     writeToJSONFile('./camera_data', 'parking', data)

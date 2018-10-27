@@ -23,3 +23,16 @@ class Parking:
 		else:
 			self.state = False
 			return False
+
+	def setState(self, point, state):
+		if ((point[0] >= self.minx and point[0] <= self.maxx) and (point[1] >= self.miny and point[1] <= self.maxy)) and state:
+			self.state = state
+			return True
+		elif ((point[0] >= self.minx and point[0] <= self.maxx) and (point[1] >= self.miny and point[1] <= self.maxy)) and not state:
+			self.state = state
+			return True
+		else:
+			return False
+
+	def __str__(self):
+		return "Top: (%s, %s), Bottom: (%s, %s), State: %s" % (self.minx, self.miny, self.maxx, self.maxy, self.state)
