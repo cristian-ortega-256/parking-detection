@@ -6,11 +6,13 @@ def getHomography():
     b_new = json.loads(obj_text)
     return np.array(b_new)
 import json
+import numpy as np
+import json,codecs
 
 def writeToJSONFile(path, fileName, data):
-    filePathNameWExt = './' + path + '/' + fileName + '.json'
-    with open(filePathNameWExt, 'w') as fp:
-        json.dump(data, fp)
+	filePathNameWExt = './' + path + '/' + fileName + '.json'
+	with open(filePathNameWExt, 'w') as fp:
+	json.dump(data, fp)
 
 def readJSONFile(path, fileName):
     filePathName = './' + path + '/' + fileName + '.json'
