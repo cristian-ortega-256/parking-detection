@@ -63,7 +63,7 @@ if os.path.isfile('./camera_data/parking.json'):
 	input('Presione ENTER para continuar...')
 else:
 	print('Configurar estacionamiento')
-	parkingConfigurator(frame.copy())
+	parkingConfigurator(webcam.getFrame())
 	os.system('clear')
 	print('Los estacionamientos configurado exitosamente!')
 	input('Presione ENTER para continuar...')

@@ -10,21 +10,12 @@ parks = []
 def mouse_action(event, x, y , flags, params):
     if event == cv2.EVENT_LBUTTONDOWN:
         for p in parks:
-            if p.setState((x,y), True):
-                break
-
-    elif event == cv2.EVENT_LBUTTONDBLCLK:
-        for p in parks:
-            print(p)
-
-    elif event == cv2.EVENT_RBUTTONDOWN:
-        for p in parks:
-            if p.setState((x,y), False):
+            if p.setState((x,y), not p.state):
                 break
 
 
 def ParkingStates():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("./assets/Test2.mp4")
 
     cv2.namedWindow("Frame")
     cv2.setMouseCallback("Frame", mouse_action)
@@ -35,19 +26,19 @@ def ParkingStates():
         new_parking = Parking(parking['point_tl'][0],parking['point_tl'][1],parking['point_br'][0],parking['point_br'][1],parking['id'])
         parks.append(new_parking)
 
-    print("Indique con el click Izquierdo si el estacionamiento se encuentra ocupado.")
-    print("Indique con el click Derecho si el estacionamiento se encuentra libre.")
+    print("Modifique el estado de cada estacionamiento hacienco click sobre cada uno.")
     print("Presione la tecla ESC para finalizar.")
+    
+    _, frame = cap.read()
 
     while True:
-        _, frame = cap.read()
 
         for p in parks:
             p.draw(frame)
 
         cv2.imshow("Frame", frame)
 
-        key = cv2.waitKey(1)
+        key = cv2.waitKey(100)
         if key == 27:
             break
 

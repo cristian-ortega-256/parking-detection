@@ -32,7 +32,7 @@ class PointManager:
 
             cv2.imshow("Frame", frame)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(100)
             if key == 27:
                 break
         

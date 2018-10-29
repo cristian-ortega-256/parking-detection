@@ -9,12 +9,12 @@ from video_source.CameraStreaming import CameraStreaming
 from video_source.VideoStream import VideoStream
 import json,codecs
 from UserInterface import UserInterface
+from helpers.JsonManager import writeToJSONFile
+import os
 
 # Video resource
 #webcam =  Video("./assets/Test2.mp4")
-webcam = VideoStream("http://192.168.0.19:8080/video").start()
-
-userInterface = UserInterface(webcam)
+webcam = VideoStream("http://192.168.43.1:8080/video").start()
 
 # SET FIRST FRAME
 
@@ -43,15 +43,18 @@ jParkings = json.loads(json_data)['parkings']
 parkingSlots = []
 
 for rawParking in jParkings:
-	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test')
+	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test',rawParking['state'])
 	parkingSlots.append(parking_new)
 
+userInterface = UserInterface(webcam,parkingSlots)
+
 userInterface.start()
+
+userInterface.parkingSlots = parkingSlots
 
 while True:
 	# Get homography fram from source
 	frame = webcam.getHomographyFrame()
-
 	# Apply movement detector to the current frame
 	frameMovement = movementDetector.detectMovement(frame)
 	#cv2.imshow("FrameMovementDetected",frameMovement)
@@ -120,11 +123,38 @@ while True:
 	# TODO --> Separete parking state control in a new file
 	
 	# PARKING SECTION
+	hasParkingChanged = False
+
 	for parking in parkingSlots:
+		isOccupied = False
 		for blob in posibleBlobs:
-			if parking.isOcupatedBy(blob):
+			if parking.isOccupiedBy(blob):
+				hasParkingChanged = True
+				isOccupied = True
 				break
+		if(parking.specialState):
+			if(isOccupied):
+				parking.specialState = False
+				parking.state = isOccupied
+			else:
+				parking.state = True
+		else:
+			parking.state = isOccupied
 		#parking.draw(frame)
+
+	if(hasParkingChanged):
+		print('saving new parkings data')
+		# Save the parkings with the new states in JSON file:
+		data_w = {}
+		data_w['parkings'] = []
+		for x in range(len(parkingSlots)):
+			data_w['parkings'].append({
+					'id': str(x),
+					'point_tl': [parkingSlots[x].minx, parkingSlots[x].miny],
+					'point_br': [parkingSlots[x].maxx, parkingSlots[x].maxy],
+					'state': parkingSlots[x].state
+			})
+		writeToJSONFile('./camera_data', 'parking', data_w)
 	
 	# Draw blobs
 	for blob in posibleBlobs:
@@ -140,7 +170,7 @@ while True:
 	if key == 13:
 		break
 	# Print to determinate end of the cicle
-
+	print(len(posibleBlobs))
 	print("----------------------------------")
 
 userInterface.stop()
