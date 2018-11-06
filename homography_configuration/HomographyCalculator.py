@@ -3,6 +3,7 @@ import math
 import numpy as np
 from helpers.PointsManager import PointManager
 from helpers.JsonManager import writeToJSONFile
+from helpers.ImageHelpers import drawGrid
 
 def findBottomYPoint(points):
 	second = greatest = points[0]
@@ -91,6 +92,7 @@ def drawPoints(points,img,color):
 
 def asNpArray(points):
 	asArray = []
+
 	for p in points:
 		asArray.append([int(p[0]),int(p[1])])
 	return np.float32(asArray)
@@ -106,63 +108,83 @@ def getRectanglePoints(p1,p2):
 		p4 = (p2[0],p1[1])
 	return [p1,p2,p3,p4]
 
-def calculateHomography(frame):
-	cv2.imshow('RAW Frame',frame)
-	height, width, channels = frame.shape
+def calculateHomography(source):
+	rawFrame = source.copy()
+	frame = source
+	isConfigurating = True
+	while isConfigurating:
+		height, width, channels = frame.shape
 
-	# Frame COPY to work with the transformations
-	transformedFrame = frame
+		# Apply GRID to the frame
+		frame = drawGrid(frame,10,10)
 
-	# Get user input points
-	pointsFrame = frame
-	pm = PointManager()
-	pts = pm.pointManageFromFrame(pointsFrame)
+		# Frame COPY to work with the transformations
+		transformedFrame = frame
 
-	# Find the 2 closest to the bottom
-	greatest,second = findBottomYPoint(pts)
+		# Get user input points
+		pointsFrame = frame
+		pm = PointManager()
+		pts = pm.pointManageFromFrame(pointsFrame.copy())
 
-	# Create parallel point to calculate grades between the 2 vectors
-	paralelToGreatestPoint = (greatest[0]*2,greatest[1])
+		# Find the 2 closest to the bottom
+		greatest,second = findBottomYPoint(pts)
 
-	# Calculates the director vectors of the given points
-	vectorOriginal = generateVector(second,greatest)
-	vectorParallel = generateVector(paralelToGreatestPoint,greatest)
+		# Create parallel point to calculate grades between the 2 vectors
+		paralelToGreatestPoint = (greatest[0]*2,greatest[1])
 
-	# Calculates the rotation difference between the to directions
-	rotationDiff = calculateRotationDiff(vectorOriginal,vectorParallel)
+		# Calculates the director vectors of the given points
+		vectorOriginal = generateVector(second,greatest)
+		vectorParallel = generateVector(paralelToGreatestPoint,greatest)
 
-	# Apply Rotation Correction to points
-	correctedPoints = applyRotationToPoints(pts,greatest,rotationDiff)
+		# Calculates the rotation difference between the to directions
+		rotationDiff = calculateRotationDiff(vectorOriginal,vectorParallel)
 
-	p1,p2 = getBiggestRectangleArea(correctedPoints)
+		# Apply Rotation Correction to points
+		correctedPoints = applyRotationToPoints(pts,greatest,rotationDiff)
 
-	outPoints = getRectanglePoints(p1,p2)
+		p1,p2 = getBiggestRectangleArea(correctedPoints)
 
-	# Match rectangle points to the corrected ones position
-	# NOTE: this is made to have a correpondient order between the initial 
-	# input points & the final out-put points.
-	orderedOutPoints = orderPointsByClosestsMatches(outPoints,correctedPoints)
+		outPoints = getRectanglePoints(p1,p2)
 
-	#cv2.imshow('Transformed Frame',transformedFrame)
+		# Match rectangle points to the corrected ones position
+		# NOTE: this is made to have a correspondient order between the initial 
+		# input points & the final out-put points.
+		orderedOutPoints = orderPointsByClosestsMatches(outPoints,correctedPoints)
 
-	# Apply HOMOGRAPHY
-	pts = asNpArray(pts)
+		#cv2.imshow('Transformed Frame',transformedFrame)
 
-	orderedOutPoints = asNpArray(orderedOutPoints)
+		# Apply HOMOGRAPHY
+		pts = asNpArray(pts)
 
-	h, mask = cv2.findHomography(pts, orderedOutPoints, cv2.RANSAC,1.0)
+		orderedOutPoints = asNpArray(orderedOutPoints)
 
-	homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.5),int(height*1.5)))
+		h, mask = cv2.findHomography(pts, orderedOutPoints, cv2.RANSAC,1.0)
 
-	cv2.imshow('Homography Frame',homographyFrame)
+		homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.3),int(height*1.3)))
 
+		cv2.destroyAllWindows()
+
+		cv2.imshow('Homography Frame',homographyFrame)
+
+		print('Seleccione una opcion:')
+		print('	1) Reiniciar configuracion homografica')
+		print('	2) Finalizar proceso ')
+		key = cv2.waitKey(0)
+
+		if key == 49:
+			frame = rawFrame
+		else:
+			isConfigurating = False
+			
+		cv2.destroyWindow('Homography Frame')
+		
 	# Save homography in JSON file:
 	data = h.tolist()
 	writeToJSONFile('./camera_data', 'homography', data)
-
+	
 	print('Homografica calculada corretamente.')
 	print('Presione una tecla para continuar...')
-	cv2.waitKey(0)
+	input('')
 	cv2.destroyAllWindows()
 
 	return homographyFrame
