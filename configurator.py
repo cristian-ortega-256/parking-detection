@@ -8,6 +8,7 @@ from camera_calibration.CameraCalibrator import calibrateCamera
 from helpers.PointsManager import PointManager
 from parking_configuration.DrawParking import DrawParking
 from parking_configuration.ParkingConfigurator import parkingConfigurator
+from parking_configuration.ParkingStates import ParkingStates
 from homography_configuration.HomographyCalculator import calculateHomography
 import codecs, json
 
@@ -51,7 +52,7 @@ if os.path.isfile('./camera_data/homography.json'):
 	input('Presione ENTER para continuar...')
 else:
 	print('La correccion de imagen se encuentra configurada!.')
-	homographyFrame = calculateHomography(frame)
+	homographyFrame = calculateHomography(frame.copy())
 	print('Configuracion de imagen finalizada.')
 	input('Presione ENTER para continuar...')
 
@@ -67,7 +68,16 @@ else:
 	print('Los estacionamientos configurado exitosamente!')
 	input('Presione ENTER para continuar...')
 
-# Fifth Step - Start Parking System [ BETA ]
+# Fifth Step - Set states of parkings
+os.system('cls') # Change this line by 'clear'
+opt = input('¿Desea indicar los estados de los estacionamientos? S/N')
+if opt.lower() == 's':
+	ParkingStates()
+else:
+	print('NO')
+
+
+# Sixth Step - Start Parking System [ BETA ]
 os.system('clear')
 print('Ha finalizado con exito la configuracion de sus sistema de administracion de estacionamientos!')
 input('Presione una tecla para finalizar...')

@@ -7,18 +7,14 @@ from parking_configuration.Parking import Parking
 from math import sqrt
 from video_source.CameraStreaming import CameraStreaming
 from video_source.VideoStream import VideoStream
-from helpers.JsonManager import getHomography
 import json,codecs
+from UserInterface import UserInterface
+from helpers.JsonManager import writeToJSONFile
+import os
 
 # Video resource
-#webcam =  Video()
-#webcam =  Video("./assets/ToyParking.mp4")
-#webcam = CameraStreaming('http://192.168.43.1:8080/shot.jpg')
-#webcam = VideoStream("http://192.168.0.19:8080/video").start()
-webcam = VideoStream("http://192.168.0.20:8080/video").start()
-
-# LOAD HOMOGRAPHY TODO --> Extract this to a json data reader
-homography = getHomography()
+#webcam =  Video("./assets/Test2.mp4")
+webcam = VideoStream("http://192.168.43.1:8080/video").start()
 
 # SET FIRST FRAME
 
@@ -47,29 +43,23 @@ jParkings = json.loads(json_data)['parkings']
 parkingSlots = []
 
 for rawParking in jParkings:
-	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test')
+	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test',rawParking['state'])
 	parkingSlots.append(parking_new)
 
-# TOP
-#parkingSlots.append(Parking(650,390,850,450,'TOP'))
+userInterface = UserInterface(webcam,parkingSlots)
 
-# BOTTOM
-#parkingSlots.append(Parking(630,570,870,670,'BOTTOM'))
+userInterface.start()
 
-# LEFT
-#parkingSlots.append(Parking(340,400,530,600,'LEFT'))
-
-# RIGHT
-#arkingSlots.append(Parking(1000,400,1200,600,'RIGHT'))
+userInterface.parkingSlots = parkingSlots
 
 while True:
 	# Get homography fram from source
-	frame = webcam.getHomographyFrame().copy()
-
+	frame = webcam.getHomographyFrame()
 	# Apply movement detector to the current frame
 	frameMovement = movementDetector.detectMovement(frame)
-	
 	#cv2.imshow("FrameMovementDetected",frameMovement)
+
+	# TODO --> Separete blob detection in a new file
 
 	# Current frame blobs
 	currentBlobs = []
@@ -130,12 +120,41 @@ while True:
 			blob.lifeSpan -= 1
 			blobs.append(blob)'''
 	
+	# TODO --> Separete parking state control in a new file
+	
 	# PARKING SECTION
+	hasParkingChanged = False
+
 	for parking in parkingSlots:
+		isOccupied = False
 		for blob in posibleBlobs:
-			if parking.isOcupatedBy(blob):
+			if parking.isOccupiedBy(blob):
+				hasParkingChanged = True
+				isOccupied = True
 				break
-		parking.draw(frame)
+		if(parking.specialState):
+			if(isOccupied):
+				parking.specialState = False
+				parking.state = isOccupied
+			else:
+				parking.state = True
+		else:
+			parking.state = isOccupied
+		#parking.draw(frame)
+
+	if(hasParkingChanged):
+		print('saving new parkings data')
+		# Save the parkings with the new states in JSON file:
+		data_w = {}
+		data_w['parkings'] = []
+		for x in range(len(parkingSlots)):
+			data_w['parkings'].append({
+					'id': str(x),
+					'point_tl': [parkingSlots[x].minx, parkingSlots[x].miny],
+					'point_br': [parkingSlots[x].maxx, parkingSlots[x].maxy],
+					'state': parkingSlots[x].state
+			})
+		writeToJSONFile('./camera_data', 'parking', data_w)
 	
 	# Draw blobs
 	for blob in posibleBlobs:
@@ -146,13 +165,14 @@ while True:
 	font = cv2.FONT_HERSHEY_SIMPLEX
 	cv2.putText(frame,"Blobs detected: " + str(len(blobs)),(10,40), font, 1,(0,0,0),2,cv2.LINE_AA)
 	
-	cv2.imshow("Frame",frame)
+	cv2.imshow("Frame",userInterface.getUiFrame())
 	key = cv2.waitKey(1)
 	if key == 13:
 		break
-	
 	# Print to determinate end of the cicle
+	print(len(posibleBlobs))
 	print("----------------------------------")
-		
-webcam.release()
+
+userInterface.stop()
+webcam.stop()
 cv2.destroyAllWindows()

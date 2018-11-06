@@ -108,3 +108,5 @@ venv.bak/
 camera_data/*.*
 # id files
 .vscode
+
+assets/*.mp4

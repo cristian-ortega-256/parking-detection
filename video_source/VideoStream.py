@@ -32,7 +32,7 @@ class VideoStream:
  
 	def update(self):
 		# keep looping infinitely until the thread is stopped
-		while True:
+		while self.stopped == False:
 			# if the thread indicator variable is set, stop the thread
 			if self.stopped:
 				return
@@ -40,7 +40,7 @@ class VideoStream:
 			# otherwise, read the next frame from the stream
 			(self.grabbed, self.frame) = self.stream.read()
 			self.updateHomographyFrame()
-			print('Frame updated')
+			#print('Frame updated')
  
 	def updateHomographyFrame(self):
 		sizeOutput = (int(self.width*1.5),int(self.height*1.5))
@@ -48,11 +48,11 @@ class VideoStream:
 	
 	def getFrame(self):
 		# return the frame most recently read
-		return self.frame
+		return self.frame.copy()
 	
 	def getHomographyFrame(self):
 		# return the frame most recently transformed
-		return self.homographyFrame
+		return self.homographyFrame.copy()
  
 	def stop(self):
 		# indicate that the thread should be stopped
