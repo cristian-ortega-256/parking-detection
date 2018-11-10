@@ -1,0 +1,2 @@
+PARKINGS = '/parkings'
+CONFIG = '/configuration'

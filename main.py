@@ -11,10 +11,23 @@ import json,codecs
 from UserInterface import UserInterface
 from helpers.JsonManager import writeToJSONFile
 import os
+import requests,random
+from services.api import get
+from services.apiRoutes import *
+
+# Getting server config data
+
+response = get(CONFIG)
+configData = json.loads(response.content)
+
+ip = configData['ip']
+port = int(configData['port'])
 
 # Video resource
+
+webcam = VideoStream("http://{}:{}/video".format(ip,port)).start()
 #webcam =  Video("./assets/Test2.mp4")
-webcam = VideoStream("http://192.168.43.1:8080/video").start()
+#webcam = VideoStream(port).start()
 
 # SET FIRST FRAME
 
@@ -155,6 +168,8 @@ while True:
 					'state': parkingSlots[x].state
 			})
 		writeToJSONFile('./camera_data', 'parking', data_w)
+
+		# TODO --> Make PUT to edit the updated parkings-server-state
 	
 	# Draw blobs
 	for blob in posibleBlobs:
