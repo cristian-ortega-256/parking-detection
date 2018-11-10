@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-from helpers.JsonManager import readJSONFile
+from helpers.JsonManager import readParkingsJSON
 from helpers.JsonManager import writeToJSONFile
 from parking_configuration.Parking import Parking
 
@@ -20,11 +20,7 @@ def ParkingStates():
     cv2.namedWindow("Frame")
     cv2.setMouseCallback("Frame", mouse_action)
 
-    data = readJSONFile('./camera_data', 'parking')
-
-    for parking in data['parkings']:
-        new_parking = Parking(parking['point_tl'][0],parking['point_tl'][1],parking['point_br'][0],parking['point_br'][1],parking['id'])
-        parks.append(new_parking)
+    parks = readParkingsJSON()
 
     print("Modifique el estado de cada estacionamiento hacienco click sobre cada uno.")
     print("Presione la tecla ESC para finalizar.")
