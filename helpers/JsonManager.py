@@ -21,7 +21,26 @@ def readJSONFile(path, fileName):
 def readParkingsJSON():
 	parks = []
 	data = readJSONFile('./camera_data', 'parking')
-	for parking in data['parkings']:
-		new_parking = Parking(parking['point_tl'][0],parking['point_tl'][1],parking['point_br'][0],parking['point_br'][1],parking['id'])
-		parks.append(new_parking)
+	for rawParking in data['parkings']:
+		parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test',rawParking['state'])
+		parks.append(parking_new)
 	return parks
+
+def writeParkingsJSON(parks):
+	# Save the parkings with the new states in JSON file:
+	data_w = {}
+	data_w['parkings'] = []
+	for x in range(len(parks)):
+		id = 0
+		try:
+			id = parks[x].id
+		except AttributeError:
+			id = x
+			
+		data_w['parkings'].append({
+				'id': str(id),
+				'point_tl': [parks[x].minx, parks[x].miny],
+				'point_br': [parks[x].maxx, parks[x].maxy],
+				'state': parks[x].state
+		})
+	writeToJSONFile('./camera_data', 'parking', data_w)

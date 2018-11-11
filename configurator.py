@@ -11,15 +11,34 @@ from parking_configuration.ParkingConfigurator import parkingConfigurator
 from parking_configuration.ParkingStates import ParkingStates
 from homography_configuration.HomographyCalculator import calculateHomography
 import codecs, json
-
-os.system('clear')
-print('Bienvenido al modulo de configuracion del Administrador de estacionamientos [ BETA ] ')
-input('Presione ENTER para continuar')
+from services.api import put,post
+from services.parkings import postParkings
+from services.apiRoutes import *
+from helpers.JsonManager import readParkingsJSON
 
 # Set video resource for all config steps
 #webcam =  Video("./assets/ToyParking.mp4")
 webcam =  Video("./assets/test2.mp4")
 frame = webcam.getFrame()
+
+height, width, channels = frame.shape
+
+configData = {
+	"configurations": [
+		{
+			"height": height
+		},
+		{
+			"width": width
+		}
+	]
+}
+
+response = put(CONFIG,configData)
+
+#os.system('clear')
+print('Bienvenido al modulo de configuracion del Administrador de estacionamientos [ BETA ] ')
+input('Presione ENTER para continuar')
 
 # First Step - Image Capture
 os.system('clear')
@@ -76,8 +95,12 @@ if opt.lower() == 's':
 else:
 	print('NO')
 
+os.system('clear')
+
+response = postParkings(readParkingsJSON())
+#print(response)
+
 
 # Sixth Step - Start Parking System [ BETA ]
-os.system('clear')
 print('Ha finalizado con exito la configuracion de sus sistema de administracion de estacionamientos!')
 input('Presione una tecla para finalizar...')

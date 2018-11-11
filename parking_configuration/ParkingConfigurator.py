@@ -15,7 +15,7 @@ def parkingConfigurator(frame):
 
     height, width, channels = frame.shape
 
-    frame = cv2.warpPerspective(frame, homography, (int(width*1.5),int(height*1.5)))
+    frame = cv2.warpPerspective(frame, homography, (width,height))
 
     all_parkings = []
 

@@ -8,7 +8,9 @@ def get(resource):
 	return requests.get("{}{}".format(url,resource), headers=headers)
 
 def post(resource,data):
-	return requests.post("{}{}".format(url,resource),data=json.dumps(data), headers=headers)
+	return requests.post("{}{}/".format(url,resource),data=json.dumps(data), headers=headers)
 
 def put(resource,data):
-	return requests.put("{}{}".format(url,resource),data=json.dumps(data), headers=headers)
+	return requests.put("{}{}/".format(url,resource),data=json.dumps(data), headers=headers)
+
+
