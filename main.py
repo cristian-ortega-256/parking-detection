@@ -14,6 +14,7 @@ import os
 import requests,random
 from services.api import get
 from services.apiRoutes import *
+from services.parkings import getParkings,putParkings
 
 # Getting server config data
 
@@ -27,7 +28,7 @@ port = int(configData['port'])
 
 webcam = VideoStream("http://{}:{}/video".format(ip,port)).start()
 #webcam =  Video("./assets/Test2.mp4")
-#webcam = VideoStream(port).start()
+#webcam = VideoStream(0).start()
 
 # SET FIRST FRAME
 
@@ -53,11 +54,9 @@ json_data = codecs.open('./camera_data/parking.json', 'r', encoding='utf-8').rea
 jParkings = json.loads(json_data)['parkings']
 
 # PARKING DEFINITIONS
-parkingSlots = []
+parkingsResponse = getParkings()
 
-for rawParking in jParkings:
-	parking_new = Parking(rawParking['point_tl'][0],rawParking['point_tl'][1],rawParking['point_br'][0],rawParking['point_br'][1],'test',rawParking['state'])
-	parkingSlots.append(parking_new)
+parkingSlots = parkingsResponse
 
 userInterface = UserInterface(webcam,parkingSlots)
 
@@ -156,18 +155,8 @@ while True:
 		#parking.draw(frame)
 
 	if(hasParkingChanged):
-		print('saving new parkings data')
-		# Save the parkings with the new states in JSON file:
-		data_w = {}
-		data_w['parkings'] = []
-		for x in range(len(parkingSlots)):
-			data_w['parkings'].append({
-					'id': str(x),
-					'point_tl': [parkingSlots[x].minx, parkingSlots[x].miny],
-					'point_br': [parkingSlots[x].maxx, parkingSlots[x].maxy],
-					'state': parkingSlots[x].state
-			})
-		writeToJSONFile('./camera_data', 'parking', data_w)
+		response = putParkings(parkingSlots)
+		print(response)
 
 		# TODO --> Make PUT to edit the updated parkings-server-state
 	
