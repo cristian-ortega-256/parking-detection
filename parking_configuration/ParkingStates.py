@@ -14,32 +14,23 @@ def mouse_action(event, x, y , flags, params):
                 break
 
 
-def ParkingStates():
-    cap = cv2.VideoCapture("./assets/Test2.mp4")
+def ParkingStates(frame):
     parks = readParkingsJSON()
     
     cv2.namedWindow("Frame")
     cv2.setMouseCallback("Frame", mouse_action,parks)
 
-
     print("Modifique el estado de cada estacionamiento hacienco click sobre cada uno.")
     print("Presione la tecla ESC para finalizar.")
-    
-    _, frame = cap.read()
 
     while True:
-
         for p in parks:
             p.draw(frame)
 
         cv2.imshow("Frame", frame)
-
-        print('cicle')
         key = cv2.waitKey(100)
-        print(key)
         if key == 27:
             break
-
 
     # Delete last json file
     os.remove("./camera_data/parking.json")
@@ -47,5 +38,4 @@ def ParkingStates():
     # Save the parkings with the new states in JSON file:
     writeParkingsJSON(parks)
 
-    cap.release()
     cv2.destroyAllWindows()

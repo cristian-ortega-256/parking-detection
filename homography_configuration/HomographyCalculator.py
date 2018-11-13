@@ -160,7 +160,7 @@ def calculateHomography(source):
 
 		h, mask = cv2.findHomography(pts, orderedOutPoints, cv2.RANSAC,1.0)
 
-		homographyFrame = cv2.warpPerspective(transformedFrame, h, (width,height))
+		homographyFrame = cv2.warpPerspective(transformedFrame, h, (int(width*1.1),int(height*1.1)))
 
 		cv2.destroyAllWindows()
 

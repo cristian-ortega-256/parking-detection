@@ -36,16 +36,16 @@ def getParkings():
 def putParkings(parkings):
 	formattedParkings = []
 	for parking in parkings:
-		formattedParkings.append(
-			{
+		new_park = {
 				"id": parking.id,
 				"tl_x": parking.minx,
 				"tl_y": parking.miny,
 				"br_x": parking.maxx,
 				"br_y": parking.maxy,
 				"isOccupied": parking.state
-			}	
-		)
+			}
+			
+		formattedParkings.append(new_park)
 
 	data = {
 		"parkings": formattedParkings
