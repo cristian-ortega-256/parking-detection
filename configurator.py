@@ -15,12 +15,23 @@ from services.api import put,post
 from services.parkings import postParkings
 from services.apiRoutes import *
 from helpers.JsonManager import readParkingsJSON
+from video_source.VideoStream import VideoStream
+from services.api import get
+from services.apiRoutes import *
+# Getting server config data
 
-# Set video resource for all config steps
+response = get(CONFIG)
+configData = json.loads(response.content)
+
+ip = configData['ip']
+port = int(configData['port'])
+
+# Video resource
+webcam = VideoStream("http://{}:{}/video".format(ip,port),False).start()
 #webcam =  Video("./assets/ToyParking.mp4")
-webcam =  Video("./assets/test2.mp4")
-frame = webcam.getFrame()
+#webcam =  Video("./assets/test2.mp4")
 
+frame = webcam.getFrame()
 height, width, channels = frame.shape
 
 configData = {
@@ -87,11 +98,14 @@ else:
 	print('Los estacionamientos configurado exitosamente!')
 	input('Presione ENTER para continuar...')
 
+# Make new connection to get an homography frame
+webcam = VideoStream("http://{}:{}/video".format(ip,port)).start()
+
 # Fifth Step - Set states of parkings
 os.system('cls') # Change this line by 'clear'
 opt = input('¿Desea indicar los estados de los estacionamientos? S/N')
 if opt.lower() == 's':
-	ParkingStates()
+	ParkingStates(webcam.getHomographyFrame())
 else:
 	print('NO')
 

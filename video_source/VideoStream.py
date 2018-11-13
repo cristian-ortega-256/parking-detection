@@ -7,7 +7,7 @@ import datetime
 
 class VideoStream:
 
-	def __init__(self, src=0):
+	def __init__(self, src=0,homographyEnabled = True):
 		# initialize the video camera stream and read the first frame
 		
 		# from the stream
@@ -16,9 +16,11 @@ class VideoStream:
 		(self.grabbed, self.frame) = self.stream.read()
 
 		# Set values for homography calculation
-		self.homography =  getHomography()
-		self.height, self.width, self.channels = self.frame.shape
-		self.updateHomographyFrame()
+		self.homographyEnabled = homographyEnabled
+		if homographyEnabled:
+			self.homography =  getHomography()
+			self.height, self.width, self.channels = self.frame.shape
+			self.updateHomographyFrame()
  
 		# initialize the variable used to indicate if the thread should
 		# be stopped
@@ -39,7 +41,8 @@ class VideoStream:
  
 			# otherwise, read the next frame from the stream
 			(self.grabbed, self.frame) = self.stream.read()
-			self.updateHomographyFrame()
+			if self.homographyEnabled:
+				self.updateHomographyFrame()
 			#print('Frame updated')
  
 	def updateHomographyFrame(self):

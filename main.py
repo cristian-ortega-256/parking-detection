@@ -75,6 +75,7 @@ while True:
 
 	# Current frame blobs
 	currentBlobs = []
+	lastFrameParkings = parkingSlots.copy()
 
 	# Analize the movement to find contours
 	(_, cnts, _) = cv2.findContours(frameMovement.copy(), cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
@@ -135,13 +136,11 @@ while True:
 	# TODO --> Separete parking state control in a new file
 	
 	# PARKING SECTION
-	hasParkingChanged = False
 
 	for parking in parkingSlots:
 		isOccupied = False
 		for blob in posibleBlobs:
 			if parking.isOccupiedBy(blob):
-				hasParkingChanged = True
 				isOccupied = True
 				break
 		if(parking.specialState):
@@ -152,11 +151,16 @@ while True:
 				parking.state = True
 		else:
 			parking.state = isOccupied
-		#parking.draw(frame)
+
+	hasParkingChanged = True
+
+	for i in range(len(parkingSlots)):
+		if parkingSlots[i].state != lastFrameParkings[i].state:
+			hasParkingChanged = True
+			break
 
 	if(hasParkingChanged):
 		response = putParkings(parkingSlots)
-		print(response)
 
 		# TODO --> Make PUT to edit the updated parkings-server-state
 	
@@ -174,8 +178,8 @@ while True:
 	if key == 13:
 		break
 	# Print to determinate end of the cicle
-	print(len(posibleBlobs))
-	print("----------------------------------")
+	#print(len(posibleBlobs))
+	#print("----------------------------------")
 
 userInterface.stop()
 webcam.stop()
