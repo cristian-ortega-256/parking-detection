@@ -24,7 +24,7 @@ def postParkings(parkings):
 
 def getParkings():
 	response = get(PARKINGS)
-	response = json.loads(response.content)
+	response = json.loads(response.content.decode('utf-8'))
 	parkings = []
 	for parking in response:
 		parking_new = Parking(parking['tl_x'],parking['tl_y'],parking['br_x'],parking['br_y'],'test',parking['isOccupied'])

@@ -13,7 +13,8 @@ class VideoStream:
 		# from the stream
 		self.stream = cv2.VideoCapture()
 		self.stream.open(src)
-		(self.grabbed, self.frame) = self.stream.read()
+		(self.grabbed, frame) = self.stream.read()
+		self.frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) 
 
 		# Set values for homography calculation
 		self.homographyEnabled = homographyEnabled
@@ -40,13 +41,14 @@ class VideoStream:
 				return
  
 			# otherwise, read the next frame from the stream
-			(self.grabbed, self.frame) = self.stream.read()
+			(self.grabbed, frame) = self.stream.read()
+			self.frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) 
 			if self.homographyEnabled:
 				self.updateHomographyFrame()
 			#print('Frame updated')
  
 	def updateHomographyFrame(self):
-		sizeOutput = (int(self.width*1.5),int(self.height*1.5))
+		sizeOutput = (self.width,self.height)
 		self.homographyFrame = cv2.warpPerspective(self.frame, self.homography, sizeOutput)
 	
 	def getFrame(self):

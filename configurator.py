@@ -21,7 +21,7 @@ from services.apiRoutes import *
 # Getting server config data
 
 response = get(CONFIG)
-configData = json.loads(response.content)
+configData = json.loads(response.content.decode('utf-8'))
 
 ip = configData['ip']
 port = int(configData['port'])

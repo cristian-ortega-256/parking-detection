@@ -9,7 +9,7 @@ from video_source.CameraStreaming import CameraStreaming
 from video_source.VideoStream import VideoStream
 import json,codecs
 from UserInterface import UserInterface
-from helpers.JsonManager import writeToJSONFile
+from helpers.JsonManager import writeToJSONFile,getHomography
 import os
 import requests,random
 from services.api import get
@@ -26,19 +26,15 @@ port = int(configData['port'])
 
 # Video resource
 
+print("http://{}:{}/video".format(ip,port))
+
 webcam = VideoStream("http://{}:{}/video".format(ip,port)).start()
 #webcam =  Video("./assets/Test2.mp4")
+
+# ---------------------------
+
 #webcam = VideoStream(0).start()
-
-# SET FIRST FRAME
-
-firstFrame = webcam.getHomographyFrame()
-
-height, width, channels = firstFrame.shape
-
-# Getting first couple of frames to initialize the move detection
-
-movementDetector = MovementDetector(firstFrame)
+#webcam = VideoStream(0,False).start()
 
 # ---------------------------
 
@@ -48,15 +44,9 @@ blobs = []
 
 posibleBlobs = []
 
-# READ PARKINGS DATA
-
-json_data = codecs.open('./camera_data/parking.json', 'r', encoding='utf-8').read()
-jParkings = json.loads(json_data)['parkings']
-
 # PARKING DEFINITIONS
-parkingsResponse = getParkings()
 
-parkingSlots = parkingsResponse
+parkingSlots = []
 
 userInterface = UserInterface(webcam,parkingSlots)
 
@@ -64,13 +54,27 @@ userInterface.start()
 
 userInterface.parkingSlots = parkingSlots
 
+# SET FIRST FRAME
+
+firstFrame = userInterface.getUiFrame()
+
+height, width, channels = firstFrame.shape
+
+# Getting first couple of frames to initialize the move detection
+
+movementDetector = MovementDetector(firstFrame)
+
+homography = getHomography()
+
+print(homography)
+
 while True:
 	# Get homography fram from source
-	frame = webcam.getHomographyFrame()
+	frame = userInterface.getUiFrame()
 	# Apply movement detector to the current frame
 	frameMovement = movementDetector.detectMovement(frame)
-	#cv2.imshow("FrameMovementDetected",frameMovement)
-
+	# cv2.imshow("FrameMovementDetected",frameMovement)
+	
 	# TODO --> Separete blob detection in a new file
 
 	# Current frame blobs
@@ -82,10 +86,24 @@ while True:
 	# loop over the contours to find BLOBS
 	for c in cnts:
 		# if the area is too small, ignore it
-		if cv2.contourArea(c) > 500:
+		if cv2.contourArea(c) > 2000:
+			# Normal BLOB
 			(x, y, w, h) = cv2.boundingRect(c)
 			blob = Blob(x,y,w,h,c)
 			currentBlobs.append(blob)
+
+			# # Transformed BLOB
+			# points = np.array([[x,y],[x+w,y],[x,y+h],[x+w,y+h]], dtype='float32')
+			# points = np.array([points])
+			# transformed = cv2.perspectiveTransform(points,homography)
+			# points = []
+			# for point in transformed[0]:
+			# 	points.append((point[0],point[1]))
+			# cv2.rectangle(frame, (points[0][0],points[0][1]), (points[3][0],points[3][1]), (0,255,255), 2)
+			# # blob = Blob(points[0][0],points[0][1],w,h,c)
+			# # currentBlobs.append(blob)
+			# print('- - - - - - - - - - - - - - - - - - - - - - - - - - -')
+
 
 	# Match currentBlobs with history blobs
 	if len(posibleBlobs) == 0:
@@ -119,66 +137,15 @@ while True:
 					cBlob.id = blobCounter
 					blobCounter += 1
 				posibleBlobs.append(cBlob)
-	#print("----------------------------------")
 
-	# Match Posible blobs to real blobs
-	# TODO --> Check the viability of this improvement
-	'''blobs = []
-	for blob in posibleBlobs:
-		print("Blob " + str(blob.id) + " life-span: " + str(blob.lifeSpan))
-		if blob.framesAlive > 10 and blob.lifeSpan > 0:
-			if blob.id == None:
-				blob.id = blobCounter
-				blobCounter += 1
-			blob.lifeSpan -= 1
-			blobs.append(blob)'''
-	
-	# TODO --> Separete parking state control in a new file
-	
-	# PARKING SECTION
-
-	for parking in parkingSlots:
-		isOccupied = False
-		for blob in posibleBlobs:
-			if parking.isOccupiedBy(blob):
-				isOccupied = True
-				break
-		if(parking.specialState):
-			if(isOccupied):
-				parking.specialState = False
-				parking.state = isOccupied
-			else:
-				parking.state = True
-		else:
-			parking.state = isOccupied
-
-	hasParkingChanged = True
-
-	for i in range(len(parkingSlots)):
-		if parkingSlots[i].state != lastFrameParkings[i].state:
-			hasParkingChanged = True
-			break
-
-	if(hasParkingChanged):
-		response = putParkings(parkingSlots)
-
-		# TODO --> Make PUT to edit the updated parkings-server-state
-	
-	# Draw blobs
 	for blob in posibleBlobs:
 		if(blob.lifeSpan > 0):
 			blob.lifeSpan -= 1
-			blob.show(frame)
-	
-	font = cv2.FONT_HERSHEY_SIMPLEX
-	cv2.putText(frame,"Blobs detected: " + str(len(blobs)),(10,40), font, 1,(0,0,0),2,cv2.LINE_AA)
-	
-	#cv2.imshow("Frame",userInterface.getUiFrame())
-	key = cv2.waitKey(1)
-	if key == 13:
-		break
-	# Print to determinate end of the cicle
-	#print(len(posibleBlobs))
+			#blob.show(frame)
+
+
+	#cv2.imshow("Frame",frame)
+	#cv2.waitKey(1)
 	print("----------------------------------")
 
 userInterface.stop()
